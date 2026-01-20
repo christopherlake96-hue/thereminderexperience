@@ -1,0 +1,1062 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Reminder Experience</title>
+
+  <style>
+    :root{
+      --bg:#061313;
+      --panel:#0b1f1f;
+      --ink:#f2f7f6;
+      --muted:#b7d3cf;
+      --emerald:#2dd4bf;
+      --teal:#0fb9b1;
+      --accent:#34f5c5;
+      --line:rgba(255,255,255,.08);
+      --radius:18px;
+      --max:1100px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(900px 500px at 20% 10%, rgba(45,212,191,.18), transparent 60%),
+        radial-gradient(900px 500px at 80% 30%, rgba(15,185,177,.18), transparent 60%),
+        var(--bg);
+    }
+
+    /* FIXED LOGO WATERMARK (moved up + cropped so it isn't clipped) */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:url("assets/logo-watermark.webp") center 70px / auto 420px no-repeat;
+      opacity:.06;
+      pointer-events:none;
+      z-index:0;
+    }
+
+    main{position:relative; z-index:1}
+    .wrap{max-width:var(--max); margin:auto; padding:70px 18px}
+
+    /* HERO */
+    .hero{
+      text-align:center;
+      padding:60px 0 40px;
+    }
+
+    .kicker{
+      margin:0 0 10px;
+      color:var(--muted);
+      font-weight:650;
+      letter-spacing:.2px;
+    }
+
+    .hero h1{
+      font-size:clamp(44px,6vw,78px);
+      letter-spacing:-1px;
+      margin:0 0 12px;
+    }
+
+    .hero p{
+      font-size:18px;
+      color:var(--muted);
+      max-width:760px;
+      margin:0 auto 26px;
+      line-height:1.6;
+    }
+
+
+    /* HERO COLLAGE (slow/medium photo collage with gentle crossfades) */
+    .hero-collage{
+      width:min(980px, 100%);
+      margin:22px auto 26px;
+      display:grid;
+      grid-template-columns:1.35fr 1fr;
+      grid-template-rows:1fr 1fr;
+      gap:12px;
+      height:360px;
+    }
+
+    .hero-collage .tile{
+      position:relative;
+      border-radius:var(--radius);
+      overflow:hidden;
+      border:1px solid var(--line);
+      background:#000;
+      isolation:isolate;
+    }
+
+    .hero-collage .tile.big{grid-row:1 / span 2}
+
+    .hero-collage .tile::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(6,19,19,.18), rgba(6,19,19,.38));
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .hero-collage img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      transform:scale(1.05);
+      transition:opacity 900ms ease;
+      opacity:0;
+      z-index:1;
+      will-change:opacity, transform;
+      filter:saturate(1.03) contrast(1.02);
+      animation: kenburns 10s ease-in-out infinite alternate;
+    }
+
+    .hero-collage img.is-active{opacity:1}
+
+    @keyframes kenburns{
+      from{transform:scale(1.05) translate(-1%, -1%)}
+      to{transform:scale(1.12) translate(1%, 1%)}
+    }
+
+    @media(max-width:900px){
+      .hero-collage{
+        grid-template-columns:1fr;
+        grid-template-rows: 220px 220px 220px;
+        height:auto;
+      }
+      .hero-collage .tile.big{grid-row:auto}
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .hero-collage img{animation:none; transition:none}
+    }
+
+    .hero-meta{
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-bottom:26px;
+    }
+
+    .hero-meta span{
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      font-size:14px;
+      color:var(--ink);
+      white-space:nowrap;
+    }
+    .hero-meta s{opacity:.6}
+    .hero-meta b{color:var(--accent)}
+
+    /* CTA */
+    .cta-row{
+      display:flex;
+      justify-content:center;
+      align-items:stretch;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .cta{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:6px;
+      padding:16px 22px;
+      border-radius:14px;
+      background:linear-gradient(135deg,var(--emerald),var(--accent));
+      color:#04201b;
+      font-weight:900;
+      text-decoration:none;
+      font-size:18px;
+      box-shadow:0 20px 60px rgba(45,212,191,.35);
+      min-width:min(520px, 100%);
+      text-align:center;
+    }
+
+    .cta span{
+      font-size:13px;
+      font-weight:650;
+      opacity:.92;
+    }
+
+    .cta.secondary{
+      background:rgba(255,255,255,.05);
+      color:var(--ink);
+      border:1px solid rgba(52,245,197,.45);
+      box-shadow:none;
+    }
+
+    .cta.secondary span{color:var(--muted)}
+
+    .spots{
+      width:100%;
+      margin-top:14px;
+      font-size:14px;
+      color:var(--muted);
+    }
+    .spots s{opacity:.6}
+    .spots b{color:var(--accent)}
+
+    /* SECTIONS */
+    section{margin-top:80px}
+
+    h2{
+      font-size:clamp(28px,3vw,40px);
+      margin:0 0 12px;
+    }
+
+    .section-text{
+      max-width:760px;
+      color:var(--muted);
+      line-height:1.7;
+      margin:0;
+    }
+
+    /* OFFERING GRID */
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:28px;
+      margin-top:40px;
+      align-items:start;
+    }
+    @media(max-width:900px){
+      .grid{grid-template-columns:1fr}
+      .cta{min-width:100%}
+    }
+
+    .card{
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:26px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* IMAGE FRAMES */
+    .media{
+      border-radius:var(--radius);
+      overflow:hidden;
+      border:1px solid var(--line);
+      background:#000;
+    }
+    .media img{width:100%; display:block}
+
+    /* MODALITIES LIST (thumbnail next to each modality) */
+    .modalities{
+      margin-top:18px;
+      display:grid;
+      gap:14px;
+    }
+
+    .modality{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+    }
+
+    .modality img{
+      width:144px;
+      height:96px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      object-fit:cover;
+      flex:0 0 auto;
+      background:#000;
+    }
+
+    .modality h3{
+      margin:0 0 6px;
+      font-size:16px;
+      letter-spacing:.1px;
+    }
+
+    .modality p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.55;
+      font-size:14px;
+    }
+
+    .extras{
+      margin-top:16px;
+      padding-top:16px;
+      border-top:1px solid var(--line);
+    }
+    .extras h3{margin:0 0 10px; font-size:16px}
+    .extras ul{margin:0; padding-left:18px; color:var(--muted); line-height:1.7}
+
+    /* QUOTES (uniform translucent style) */
+    .quote{
+      margin-top:26px;
+      max-width:520px;
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px 18px 16px;
+      opacity:.72;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .quote p{margin:0 0 10px; font-style:italic; line-height:1.6; color:var(--ink)}
+    .quote cite{display:block; font-style:normal; color:var(--muted); font-size:13px}
+    .quote .rating{display:block; margin-bottom:10px; font-size:13px; letter-spacing:.08em; color:rgba(242,247,246,.92)}
+    .quote.right{margin-left:auto}
+    .quote.overlap{margin-top:-14px}
+
+    .testimonial-panel{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .testimonial-panel h3{
+      margin:0 0 6px;
+      font-size:16px;
+      letter-spacing:.1px;
+      color:rgba(242,247,246,.94);
+    }
+
+    .testimonial-panel .note{
+      margin:0 0 10px;
+      color:var(--muted);
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .testimonial-panel .quote{margin-top:0; max-width:none}
+
+    /* ITINERARY */
+    .itinerary{
+      display:grid;
+      gap:18px;
+      margin-top:26px;
+    }
+
+    .day{
+      padding:22px;
+      border-radius:var(--radius);
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      overflow:hidden;
+    }
+
+    .day h3{margin:0 0 8px; font-size:18px}
+    .day .subtitle{margin:0 0 14px; color:var(--muted); line-height:1.6}
+
+    .slots{display:grid; gap:0; border-top:1px solid var(--line)}
+
+    .slot{
+      display:grid;
+      grid-template-columns: 170px 1fr;
+      gap:14px;
+      padding:14px 0;
+      border-bottom:1px solid var(--line);
+    }
+
+    .time{
+      color:rgba(242,247,246,.92);
+      font-weight:800;
+      font-size:14px;
+      letter-spacing:.2px;
+      padding-right:8px;
+    }
+
+    .slot strong{display:block; margin-bottom:6px}
+
+    .slot .desc{margin:0; color:var(--muted); line-height:1.6; font-size:14px}
+
+    .slot ul{margin:10px 0 0; padding-left:18px; color:var(--muted); line-height:1.65; font-size:14px}
+
+    .tag{
+      display:inline-block;
+      margin-left:8px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      vertical-align:middle;
+    }
+
+    @media(max-width:680px){
+      .slot{grid-template-columns:1fr}
+      .time{padding-right:0}
+      .modality{flex-direction:column}
+      .modality img{width:100%; height:170px}
+    }
+
+
+
+    /* INQUIRY (contact/application form styling) */
+    .form{
+      margin-top:22px;
+      display:grid;
+      gap:14px;
+      padding:22px;
+      border-radius:var(--radius);
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+    }
+    .form .row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+    .form label{
+      display:grid;
+      gap:8px;
+      font-weight:700;
+      font-size:13px;
+      color:rgba(242,247,246,.92);
+    }
+    .form input, .form textarea, .form select{
+      width:100%;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      color:var(--ink);
+      padding:12px 12px;
+      font:inherit;
+      outline:none;
+    }
+    .form textarea{min-height:110px; resize:vertical}
+    .form .hint{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+    .form .actions{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+    .form button{
+      border:0;
+      border-radius:14px;
+      padding:14px 18px;
+      font-weight:900;
+      cursor:pointer;
+      background:linear-gradient(135deg,var(--emerald),var(--accent));
+      color:#04201b;
+    }
+    .form button:focus{outline:2px solid rgba(52,245,197,.55); outline-offset:2px}
+
+    @media(max-width:680px){
+      .form .row{grid-template-columns:1fr}
+    }
+
+
+    /* FOOTER */
+    footer{
+      margin-top:90px;
+      padding-top:30px;
+      border-top:1px solid var(--line);
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.7;
+    }
+
+    .fineprint{
+      margin-top:18px;
+      font-size:12px;
+      line-height:1.7;
+      color:rgba(183,211,207,.9);
+    }
+    .fineprint b{color:var(--ink)}
+
+    /* small helper */
+    .spacer{height:6px}
+  </style>
+</head>
+
+<body>
+  <main>
+
+    <div class="wrap hero" id="top">
+      <p class="kicker">A 3-Day Trauma-Informed Integration Experience</p>
+      <h1>The Reminder Experience</h1>
+      <p>Nothing to fix. Nothing to become. Just remember.</p>
+
+      <!-- Hero collage (cycles through your provided photos) -->
+      <div class="hero-collage" aria-label="Experience photo collage">
+        <div class="tile big" data-tile="0">
+          <img class="layer-a is-active" src="assets/hero-01.webp" alt="Group experience moment" loading="eager">
+          <img class="layer-b" src="assets/hero-02.webp" alt="Group experience moment" loading="eager">
+        </div>
+        <div class="tile" data-tile="1">
+          <img class="layer-a is-active" src="assets/hero-03.webp" alt="Facilitated session" loading="eager">
+          <img class="layer-b" src="assets/hero-04.webp" alt="Facilitated session" loading="eager">
+        </div>
+        <div class="tile" data-tile="2">
+          <img class="layer-a is-active" src="assets/hero-05.webp" alt="Somatic or movement practice" loading="eager">
+          <img class="layer-b" src="assets/hero-06.webp" alt="Somatic or movement practice" loading="eager">
+        </div>
+      </div>
+
+
+      <div class="hero-meta">
+        <span>3-Day Experience (Fri–Sun)</span>
+        <span><b>2025</b> — December (Sold Out)</span>
+        <span><b>2026</b> — January (Sold Out) · February (Sold Out) · March <s>12 spots</s> <b>10 spots remaining</b></span>
+        <span><b>$1,850</b></span>
+        <span>Application-Based</span>
+      </div>
+
+      <div class="cta-row" id="application">
+        <!-- Replace the href values with your application checkout/form links -->
+        <a class="cta" href="#inquire">
+          Claim my spot
+          <span>$1,850 • Application required. Limited capacity for safety + intimacy.</span>
+        </a>
+        <a class="cta secondary" href="#inquire">
+          Claim my spot + VIP upgrade (+$600)
+          <span>Have a personal coach by your side throughout the entire experience.</span>
+        </a>
+
+        <div class="spots">
+          <s>12 spots available</s> &nbsp; <b>10 spots remaining</b>
+        </div>
+      </div>
+
+      <div class="quote overlap">
+        <span class="rating" aria-label="5 out of 5 stars">⭐️⭐️⭐️⭐️⭐️</span>
+        <p>“The breathwork sessions were my favorite part. They were gentle, grounding, and never overwhelming. I felt my nervous system settle without being pushed into anything.”</p>
+        <cite>— Sarah M., October 2025</cite>
+      </div>
+    </div>
+
+    <div class="wrap">
+
+      <section>
+        <h2>What This Is</h2>
+        <p class="section-text">
+          A professionally guided, trauma-informed integration experience focused on nervous system regulation,
+          awareness, and embodied presence. This is not a retreat, ceremony, or performance-based transformation.
+          It is a structured, contained experience designed for safety, pacing, and integration.
+        </p>
+
+        <div class="quote right">
+          <span class="rating" aria-label="5 out of 5 stars">⭐️⭐️⭐️⭐️⭐️</span>
+          <p>“The closing ceremony and final sound bath helped everything settle. I left feeling regulated, clear, and complete — not emotionally cracked open or overwhelmed.”</p>
+          <cite>— Mark D., November 2025</cite>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="card">
+          <h2>What’s Included</h2>
+          <p class="section-text">A curated set of evidence-informed modalities delivered in a paced, professionally held container.</p>
+
+          <div class="modalities">
+            <div class="modality">
+              <img src="assets/breathwork-thumb.webp" alt="Trauma-informed breathwork session" loading="lazy">
+              <div>
+                <h3>Breathwork</h3>
+                <p>Guided, trauma-informed breathwork focused on regulation, awareness, and embodied presence.</p>
+              </div>
+            </div>
+
+            <div class="modality">
+              <img src="assets/emdr-thumb.webp" alt="EMDR-informed integration session" loading="lazy">
+              <div>
+                <h3>EMDR-Informed Integration (Non-Reprocessing)</h3>
+                <p>Grounded integration support using EMDR-informed principles without reprocessing inside the group container.</p>
+              </div>
+            </div>
+
+            <div class="modality">
+              <img src="assets/sound-bath-thumb.webp" alt="Outdoor sound bath for nervous system settling" loading="lazy">
+              <div>
+                <h3>Sound Bath</h3>
+                <p>Group sound baths supporting downshifting, coherence, and integration.</p>
+              </div>
+            </div>
+
+            <div class="modality">
+              <img src="assets/soundself-thumb.webp" alt="SoundSelf immersive awareness experience" loading="lazy">
+              <div>
+                <h3>SoundSelf Immersive Awareness</h3>
+                <p>An immersive sound-based experience designed to support self-observation, presence, and deep inner listening.</p>
+              </div>
+            </div>
+
+            <div class="modality">
+              <img src="assets/vat-thumb.webp" alt="Vibroacoustic therapy session" loading="lazy">
+              <div>
+                <h3>Vibroacoustic Therapy (VAT)</h3>
+                <p>Vibration + sound delivered through a specialized table to support nervous system settling and embodied regulation.</p>
+              </div>
+            </div>
+
+            <div class="modality">
+              <img src="assets/mirror-mind-thumb.webp" alt="Mirror Mind neural reflection technology" loading="lazy" style="object-position:center top">
+              <div>
+                <h3>Mirror Mind Neural Reflection</h3>
+                <p>Real-time neural reflection for awareness and insight — no stimulation, no training, just observation.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="extras">
+            <h3>Also included</h3>
+            <ul>
+              <li>Trauma-informed facilitation and psychological safety</li>
+              <li>Nervous system education, pacing expectations, and group agreements</li>
+              <li>Mindfulness and somatic practices</li>
+              <li>Structured group integration and meaning-making</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card testimonial-panel" aria-label="Participant testimonials">
+          <h3>Participant Reflections</h3>
+          <p class="note">Recent reflections from participants.</p>
+
+          <div class="quote">
+            <span class="rating" aria-label="5 out of 5 stars">⭐️⭐️⭐️⭐️⭐️</span>
+            <p>“The morning Qigong, mindfulness movement, and breathwork created a strong foundation for each day. I felt grounded and present before moving into any deeper work.”</p>
+            <cite>— Chris N., November 2025</cite>
+          </div>
+
+          <div class="quote">
+            <span class="rating" aria-label="5 out of 5 stars">⭐️⭐️⭐️⭐️⭐️</span>
+            <p>“The EMDR-informed integration was handled with care and professionalism. It supported awareness and insight without pushing trauma processing, which made me feel safe.”</p>
+            <cite>— Anna B., December 2025</cite>
+          </div>
+
+          <div class="quote">
+            <span class="rating" aria-label="5 out of 5 stars">⭐️⭐️⭐️⭐️⭐️</span>
+            <p>“SoundSelf stood out for me. The immersive experience allowed me to drop into awareness quickly, without effort or pressure. It felt supportive rather than intense.”</p>
+            <cite>— Emily T., December 2025</cite>
+          </div>
+
+          <div class="quote">
+            <span class="rating" aria-label="5 out of 5 stars">⭐️⭐️⭐️⭐️⭐️</span>
+            <p>“The Vibroacoustic Therapy sessions were incredibly regulating. The sound and vibration helped release tension in a way that felt natural and contained.”</p>
+            <cite>— Michael L., October 2025</cite>
+          </div>
+
+          <div class="quote">
+            <span class="rating" aria-label="5 out of 5 stars">⭐️⭐️⭐️⭐️⭐️</span>
+            <p>“The sound baths were deeply calming. I’ve done sound baths before, but these were clearly designed for integration and nervous system regulation, not emotional overload.”</p>
+            <cite>— Rachel K., November 2025</cite>
+          </div>
+
+          <div class="quote">
+            <span class="rating" aria-label="5 out of 5 stars">⭐️⭐️⭐️⭐️⭐️</span>
+            <p>“The Medicine Wheel sound bath on the beach was one of the most meaningful parts of the weekend. The structure and setting allowed for reflection without forcing interpretation.”</p>
+            <cite>— David S., December 2025</cite>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="media">
+          <img src="assets/mirror-mind-hero.webp" alt="Mirror Mind neural reflection overview" loading="lazy">
+        </div>
+
+        <div class="card">
+          <h2>Neural Reflection & Awareness Technology</h2>
+          <p class="section-text">
+            Non-invasive neural reflection technology (Mirror Mind) is used solely for self-observation
+            and insight. There is no stimulation, no training, and no diagnosis —
+            just real-time awareness of internal states.
+          </p>
+
+          <div class="quote">
+            <span class="rating" aria-label="5 out of 5 stars">⭐️⭐️⭐️⭐️⭐️</span>
+            <p>“Mirror Mind was surprisingly impactful. Seeing my internal state reflected visually helped me notice subtle shifts without needing to analyze or explain them. It felt simple, clear, and grounding.”</p>
+            <cite>— James R., November 2025</cite>
+          </div>
+        </div>
+      </section>
+
+      <section id="itinerary">
+        <h2>Itinerary</h2>
+        <p class="section-text">
+          A clean, paced container with preparation, immersion, and structured integration — designed for safety, consent, and carry-forward.
+        </p>
+
+        <div class="itinerary">
+
+          <div class="day">
+            <h3>Pre-Experience Preparation (Required)</h3>
+            <p class="subtitle">Completed a minimum of one week prior. All participants complete a brief 1:1 preparation process with a facilitator to support readiness, safety, and alignment.</p>
+            <div class="slots">
+              <div class="slot">
+                <div class="time">Included</div>
+                <div>
+                  <strong>Preparation process</strong>
+                  <p class="desc">This preparation supports a safe, contained, and fully engaged group experience.</p>
+                  <ul>
+                    <li>Biopsychosocial screening</li>
+                    <li>Nervous system education and pacing expectations</li>
+                    <li>Intention setting and goal clarification</li>
+                    <li>Review of group agreements, consent, and boundaries</li>
+                    <li>Orientation to experiential modalities</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="day">
+            <h3>Friday — Arrival & Orientation</h3>
+            <p class="subtitle">Grounding, consent, orientation, and foundational regulation practices to establish the container.</p>
+
+            <div class="slots">
+              <div class="slot">
+                <div class="time">1:00 – 2:00 PM</div>
+                <div>
+                  <strong>Arrival & Check-In</strong>
+                  <p class="desc">Welcome, registration, grounding orientation, and introductions.</p>
+                </div>
+              </div>
+
+              <div class="slot">
+                <div class="time">2:00 – 3:00 PM</div>
+                <div>
+                  <strong>Opening Circle & Program Orientation</strong>
+                  <p class="desc">Group agreements, psychological safety, consent, and expectations for full engagement within the container.</p>
+                </div>
+              </div>
+
+              <div class="slot">
+                <div class="time">3:00 – 4:00 PM</div>
+                <div>
+                  <strong>Breathwork Foundations</strong>
+                  <p class="desc">Guided, trauma-informed breathwork focused on regulation, awareness, and embodied presence.</p>
+                </div>
+              </div>
+
+              <div class="slot">
+                <div class="time">4:00 – 6:30 PM</div>
+                <div>
+                  <strong>Experiential Rotation Block</strong>
+                  <p class="desc">Small-group rotations through:</p>
+                  <ul>
+                    <li>EMDR-informed integration (non-reprocessing)</li>
+                    <li>Vibroacoustic Therapy (VAT)</li>
+                    <li>SoundSelf immersive awareness</li>
+                    <li>Mirror Mind neural reflection (baseline)</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="slot" style="border-bottom:none">
+                <div class="time">6:30 – 7:30 PM</div>
+                <div>
+                  <strong>Evening Sound Bath</strong>
+                  <p class="desc">Group sound bath for nervous system settling and integration.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="day">
+            <h3>Saturday — Immersion & Integration</h3>
+            <p class="subtitle">Movement, sound, and rotations designed to support reflection, coherence, and meaning-making.</p>
+
+            <div class="slots">
+              <div class="slot">
+                <div class="time">8:00 – 10:00 AM</div>
+                <div>
+                  <strong>Beach-Based Qigong & Mindfulness</strong>
+                  <p class="desc">Gentle movement, breath, and somatic awareness to establish rhythm and grounding.</p>
+                </div>
+              </div>
+
+              <div class="slot">
+                <div class="time">10:00 AM – 12:00 PM</div>
+                <div>
+                  <strong>Medicine Wheel Sound Bath (Beach)</strong>
+                  <p class="desc">Structured sound experience supporting reflection, coherence, and embodied awareness.</p>
+                </div>
+              </div>
+
+              <div class="slot">
+                <div class="time">12:00 – 2:30 PM</div>
+                <div>
+                  <strong>Lunch Break <span class="tag">On your own</span></strong>
+                  <p class="desc">Personal time for rest, nourishment, and integration.</p>
+                </div>
+              </div>
+
+              <div class="slot">
+                <div class="time">3:00 – 6:00 PM</div>
+                <div>
+                  <strong>Individual & Small-Group Integration Rotations</strong>
+                  <p class="desc">Participants rotate through:</p>
+                  <ul>
+                    <li>Vibroacoustic Therapy (VAT)</li>
+                    <li>EMDR-informed integration (non-reprocessing)</li>
+                    <li>SoundSelf immersive awareness</li>
+                    <li>Mirror Mind neural reflection</li>
+                    <li>Individual sound tuning fork session</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="slot">
+                <div class="time">6:00 – 8:00 PM</div>
+                <div>
+                  <strong>Fire Pit Circle & Guided Ritual</strong>
+                  <p class="desc">Facilitated group reflection focused on meaning-making, connection, and containment.</p>
+                </div>
+              </div>
+
+              <div class="slot" style="border-bottom:none">
+                <div class="time">9:00 PM</div>
+                <div>
+                  <strong>Evening Reflections</strong>
+                  <p class="desc">Quiet integration, journaling, or rest.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="day">
+            <h3>Sunday — Integration & Closure</h3>
+            <p class="subtitle">Choice-based stations, closing ceremony, and grounded re-entry support.</p>
+
+            <div class="slots">
+              <div class="slot">
+                <div class="time">8:00 – 10:00 AM</div>
+                <div>
+                  <strong>Qigong, Mindfulness Movement & Breathwork</strong>
+                  <p class="desc">Gentle, regulating practices to support integration and transition.</p>
+                </div>
+              </div>
+
+              <div class="slot">
+                <div class="time">10:00 AM – 12:00 PM</div>
+                <div>
+                  <strong>Choice-Based Integration Stations</strong>
+                  <p class="desc">Participants choose one focused experience:</p>
+                  <ul>
+                    <li>Vibroacoustic Therapy (VAT)</li>
+                    <li>EMDR-informed integration (non-reprocessing)</li>
+                    <li>SoundSelf immersive awareness</li>
+                    <li>Mirror Mind neural reflection</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="slot">
+                <div class="time">12:00 – 2:30 PM</div>
+                <div>
+                  <strong>Lunch Break <span class="tag">On your own</span></strong>
+                  <p class="desc">Personal time for rest, nourishment, and integration.</p>
+                </div>
+              </div>
+
+              <div class="slot">
+                <div class="time">3:30 – 5:00 PM</div>
+                <div>
+                  <strong>Closing Ceremony: The Circle of Remembering</strong>
+                  <p class="desc">Guided meditation, group reflection, and a closing sound bath to support continuity, grounding, and re-entry into daily life.</p>
+                </div>
+              </div>
+
+              <div class="slot" style="border-bottom:none">
+                <div class="time">5:00 PM</div>
+                <div>
+                  <strong>Official Close of The Reminder Experience</strong>
+                  <p class="desc">Thank you for honoring the container and your own integration process.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section>
+        <h2>Who This Is For</h2>
+        <p class="section-text">
+          Adults seeking depth with safety. Those who value professional guidance, ethical containment,
+          and calm intentional spaces over high-intensity experiences.
+        </p>
+
+        <div class="quote right">
+          <span class="rating" aria-label="5 out of 5 stars">⭐️⭐️⭐️⭐️⭐️</span>
+          <p>“I appreciated the choice-based stations, especially being able to select between Mirror Mind, VAT, SoundSelf, and EMDR-informed integration. Having choice made the experience feel respectful and empowering.”</p>
+          <cite>— Lauren P., October 2025</cite>
+        </div>
+      </section>
+
+      <section>
+        <h2>Private Group Option</h2>
+        <p class="section-text">
+          Prefer a private container for you and your own group, without other participants? A limited number of private bookings may be available by request.
+        </p>
+        <div class="spacer"></div>
+        <div class="card">
+          <h3 style="margin:0 0 10px">Reserve the experience privately</h3>
+          <p class="section-text" style="margin:0 0 16px">
+            Private bookings require advance planning for staffing, pacing, and ethical oversight. Please contact us in advance to explore dates and fit.
+          </p>
+          <div class="cta-row">
+            <a class="cta secondary" href="#inquire">
+              Inquire about private group booking
+              <span>Contact in advance for availability and staffing.</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="inquire">
+        <h2>Application & Inquiries</h2>
+        <p class="section-text">
+          Use this form to apply, request details, or inquire about a private group booking.
+        </p>
+
+        <form class="form" action="#inquire" method="get">
+          <div class="row">
+            <label>
+              Full name
+              <input type="text" name="name" placeholder="Your name" autocomplete="name">
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" placeholder="you@example.com" autocomplete="email">
+            </label>
+          </div>
+
+          <div class="row">
+            <label>
+              I’m interested in
+              <select name="interest">
+                <option value="standard">Standard Admission ($1,850)</option>
+                <option value="vip">VIP Upgrade (+$600)</option>
+                <option value="private">Private Group Booking</option>
+              </select>
+            </label>
+            <label>
+              Phone (optional)
+              <input type="tel" name="phone" placeholder="(000) 000-0000" autocomplete="tel">
+            </label>
+          </div>
+
+          <label>
+            Message
+            <textarea name="message" placeholder="Tell us what you’re looking for, any scheduling needs, and anything you want us to know."></textarea>
+          </label>
+
+          <div class="actions">
+            <button type="submit">Submit</button>
+          </div>
+        </form>
+      </section>
+
+      <section>
+        <div class="cta-row">
+          <a class="cta" href="#inquire">
+            Claim my spot
+            <span>$1,850 • Application required. Limited capacity for safety + intimacy.</span>
+          </a>
+          <a class="cta secondary" href="#inquire">
+            Claim my spot + VIP upgrade (+$600)
+            <span>Have a personal coach by your side throughout the entire experience.</span>
+          </a>
+        </div>
+      </section>
+
+      <footer>
+        <b>Revive and Thrive Tribe</b><br>
+        Professionally guided, trauma-informed experiences supporting awareness, integration, and nervous system regulation.
+
+        <div class="fineprint">
+          <b>Designed and stewarded by an award-recognized leader in community, wellness, and clinical care.</b><br><br>
+
+          This experience was created by a multiple award–recognized professional with a background spanning nonprofit leadership, community program development, and clinical mental health practice. Their work has been nationally recognized through organizations including the National Society of Leadership and Success, Keep America Beautiful, and Keep Florida Beautiful, and acknowledged by multiple Chambers of Commerce for leadership, service, and program impact.<br><br>
+
+          They are also a recipient of the Bob Graham Distinguished Service Award, recognizing sustained service, integrity, and contribution to the community.<br><br>
+
+          In addition to nonprofit and civic leadership, this experience is guided by licensed clinicians, trained professionals, and certified wellness coaches, including a Licensed Clinical Social Worker (LCSW) and a Licensed Mental Health Counselor (LMHC), ensuring ethical oversight, trauma-informed design, and professional standards of care throughout all programming.<br><br>
+
+          The facilitators are also co-authors of published workbooks focused on shadow work and Motivational Interviewing, grounding the experience in both clinical theory and practical, integrative application.
+
+        </div>
+      </footer>
+
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced) return;
+
+      const sources = [
+        'assets/hero-01.webp',
+        'assets/hero-02.webp',
+        'assets/hero-03.webp',
+        'assets/hero-04.webp',
+        'assets/hero-05.webp',
+        'assets/hero-06.webp',
+        'assets/hero-07.webp',
+        'assets/hero-08.webp',
+        'assets/hero-09.webp'
+      ];
+
+      const tiles = Array.from(document.querySelectorAll('.hero-collage .tile'));
+      if (!tiles.length) return;
+
+      // Cycle speed: "every second or so" with a smooth crossfade.
+      const intervalMs = 1600;
+
+      tiles.forEach((tile, tIndex) => {
+        const a = tile.querySelector('.layer-a');
+        const b = tile.querySelector('.layer-b');
+        if (!a || !b) return;
+
+        let index = (tIndex * 2) % sources.length;
+        let showingA = true;
+
+        // Ensure initial sources are distinct across tiles.
+        a.src = sources[index % sources.length];
+        b.src = sources[(index + 1) % sources.length];
+        a.classList.add('is-active');
+
+        setTimeout(() => {
+          setInterval(() => {
+            index = (index + 1) % sources.length;
+            const nextSrc = sources[index];
+
+            const incoming = showingA ? b : a;
+            const outgoing = showingA ? a : b;
+
+            incoming.src = nextSrc;
+            // Force layout so opacity transition triggers reliably
+            incoming.offsetHeight; // eslint-disable-line no-unused-expressions
+            incoming.classList.add('is-active');
+            outgoing.classList.remove('is-active');
+
+            showingA = !showingA;
+          }, intervalMs);
+        }, tIndex * 260); // stagger tile flips for a "collage" feel
+      });
+    })();
+  </script>
+
+</body>
+</html>
